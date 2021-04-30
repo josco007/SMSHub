@@ -46,7 +46,11 @@ class SendTask constructor(_settings: SettingsManager, _context: Context) : Time
                 })
                 Log.d("error", "Error while parsing SMS" + apiResponse.text)
             }
-        } finally {
+        }
+        catch (e: Exception){
+            Log.e("error", e.message)
+        }
+        finally {
             // optional finally block
         }
         if (canSend) {

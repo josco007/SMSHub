@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.IntentFilter
 import android.telephony.SmsManager
 import android.util.Log
+import android.view.WindowManager
 
 
 class MainActivity : AppCompatActivity() {
@@ -59,6 +60,9 @@ class MainActivity : AppCompatActivity() {
         } catch (e: IllegalArgumentException) {
             Log.d("-->", "Already subscribed")
         }
+
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     override fun onStop() {
