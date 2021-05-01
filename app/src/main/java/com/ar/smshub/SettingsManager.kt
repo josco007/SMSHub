@@ -14,6 +14,7 @@ class SettingsManager {
     var statusURL: String = ""
     var receiveURL: String = ""
     var deviceId: String = ""
+    var socketURI: String = ""
     var sharedPref: SharedPreferences
     var context: Context
 
@@ -33,6 +34,7 @@ class SettingsManager {
         val defaultReceiveURL = context.resources.getString(R.string.preference_default_receive_url)
         val defaultStatusURL = context.resources.getString(R.string.preference_default_status_url)
         val defaultDeviceId = context.resources.getString(R.string.preference_default_device_id)
+        val defaultSocketURI = context.resources.getString(R.string.preference_default_socket_uri)
 
         this.isSendEnabled = sharedPref!!.getBoolean(context.getString(R.string.preference_send_enabled), defaultSendEnabled)
         this.interval = sharedPref!!.getInt(context.getString(R.string.preference_interval), defaultInterval)
@@ -40,15 +42,17 @@ class SettingsManager {
         this.receiveURL = sharedPref!!.getString(context.getString(R.string.preference_receive_url), defaultReceiveURL)
         this.statusURL = sharedPref!!.getString(context.getString(R.string.preference_status_url), defaultStatusURL)
         this.deviceId = sharedPref!!.getString(context.getString(R.string.preference_device_id), defaultDeviceId)
+        this.socketURI = sharedPref!!.getString(context.getString(R.string.preference_socket_uri), defaultSocketURI)
     }
 
-    fun setSettings(_isSendEnabled: Boolean, _interval: Int, _sendURL: String,_receiveURL: String,_statusURL: String, _deviceId: String){
+    fun setSettings(_isSendEnabled: Boolean, _interval: Int, _sendURL: String,_receiveURL: String,_statusURL: String, _deviceId: String, _socketURI: String){
         this.interval = _interval
         this.sendURL = _sendURL
         this.receiveURL = _receiveURL
         this.statusURL = _statusURL
         this.deviceId = _deviceId
         this.isSendEnabled = _isSendEnabled
+        this.socketURI = _socketURI
         with(sharedPref!!.edit()) {
             putBoolean(context.getString(R.string.preference_send_enabled), _isSendEnabled)
             putString(context.getString(R.string.preference_send_url), _sendURL)
@@ -56,6 +60,7 @@ class SettingsManager {
             putString(context.getString(R.string.preference_status_url), _statusURL)
             putString(context.getString(R.string.preference_device_id), _deviceId)
             putInt(context.getString(R.string.preference_interval), _interval)
+            putString(context.getString(R.string.preference_socket_uri), _socketURI)
             commit()
             Log.d("--->_isSendEnabled", _isSendEnabled.toString())
             Toast.makeText(context, "Settings updated", Toast.LENGTH_SHORT).show()

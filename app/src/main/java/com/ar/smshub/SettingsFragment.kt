@@ -65,6 +65,7 @@ class SettingsFragment : Fragment() {
         val txtInterval: EditText = view.findViewById(R.id.textInterval)
         val txtDeviceId: EditText = view.findViewById(R.id.textDeviceId)
         val switchIsEnabled: Switch = view.findViewById(R.id.switchIsEnabled)
+        val textSocketURI: EditText = view.findViewById(R.id.textSocketURI)
 
         txtInterval.setText(settingsManager.interval.toString())
         switchIsEnabled.isChecked = settingsManager.isSendEnabled
@@ -72,6 +73,7 @@ class SettingsFragment : Fragment() {
         txtReceiveURL.setText(settingsManager.receiveURL)
         txtStatusURL.setText(settingsManager.statusURL)
         txtDeviceId.setText(settingsManager.deviceId)
+        textSocketURI.setText(settingsManager.socketURI)
 
         //save
         btnSave.setOnClickListener {
@@ -81,7 +83,8 @@ class SettingsFragment : Fragment() {
                 txtSendURL.text.toString(),
                 txtReceiveURL.text.toString(),
                 txtStatusURL.text.toString(),
-                txtDeviceId.text.toString()
+                txtDeviceId.text.toString(),
+                textSocketURI.text.toString()
             )
             val mainFragment = fragmentManager.findFragmentByTag("MAIN") as MainFragment
             val transaction = fragmentManager.beginTransaction()
@@ -89,7 +92,7 @@ class SettingsFragment : Fragment() {
             transaction.replace(R.id.main_view, mainFragment, "MAIN")
             transaction.commit()
             fragmentManager.executePendingTransactions()
-            //mainActivity.updateTimer()
+            mainActivity.updateTimer()
         }
 
         //save
@@ -118,7 +121,8 @@ class SettingsFragment : Fragment() {
                     txtSendURL.text.toString(),
                     txtReceiveURL.text.toString(),
                     txtStatusURL.text.toString(),
-                    txtDeviceId.text.toString()
+                    txtDeviceId.text.toString(),
+                    textSocketURI.text.toString()
                 )
             }
             mainActivity.updateTimer()

@@ -1,26 +1,28 @@
 package com.ar.smshub
 
 import android.Manifest
+import android.app.AlarmManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.WindowManager
 import android.widget.Toast
-
+import com.github.nkzawa.socketio.client.IO
+import com.github.nkzawa.socketio.client.Socket
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
-import android.support.v4.app.NotificationCompat.getExtras
-import android.content.Intent
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.IntentFilter
-import android.telephony.SmsManager
-import android.util.Log
-import android.view.WindowManager
 
 
 class MainActivity : AppCompatActivity() {
@@ -36,9 +38,17 @@ class MainActivity : AppCompatActivity() {
     var sendIntent = SMSSendIntent()
     var deliverIntent = SMSSendIntent()
 
+    private var socket: Socket? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        appInitialization()
+
+        EasyDeviceModManager.init(this)
+
+
         setSupportActionBar(toolbar)
         settingsManager = SettingsManager(this)
         var mainFragment = MainFragment()
@@ -63,8 +73,18 @@ class MainActivity : AppCompatActivity() {
 
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        socket = IO.socket(settingsManager.socketURI)
+        initSocketListener()
     }
 
+
+    override fun onStart() {
+        super.onStart()
+        tryConnectSocket()
+
+
+    }
     override fun onStop() {
         /*
         try {
@@ -74,6 +94,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: IllegalArgumentException) {
             Log.d("-->", "No receivers")
         }*/
+        disconnectSocket()
         super.onStop()
 
     }
@@ -120,7 +141,7 @@ class MainActivity : AppCompatActivity() {
         settingsManager.updateSettings()
         Log.d("---->", "Update timer")
         Log.d("--->setM.isSend", settingsManager.isSendEnabled.toString())
-        if (settingsManager.isSendEnabled) {
+        if (settingsManager.isSendEnabled && settingsManager.interval  > 0) {
             startTimer()
         } else {
             cancelTimer()
@@ -141,7 +162,7 @@ class MainActivity : AppCompatActivity() {
             timerSend.cancel()
         }
         timerSend = Timer("SendSMS", true)
-        if (settingsManager.isSendEnabled) {
+        if (settingsManager.isSendEnabled && settingsManager.interval  > 0) {
             val seconds = settingsManager.interval * 60
             val interval: Long
             if (BuildConfig.DEBUG) {
@@ -274,5 +295,75 @@ class MainActivity : AppCompatActivity() {
     fun msgShow(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
+
+
+    private fun tryConnectSocket(){
+
+        try {
+            settingsManager.updateSettings()
+
+            socket?.connect()
+            socket?.emit("onSMSDeviceJoined", EasyDeviceModManager.getInstance().buildID)
+        }
+        catch (e: Exception){
+            e.printStackTrace()
+        }
+    }
+
+    private fun initSocketListener(){
+        socket?.on("onNewSMS") { args ->
+            Log.i("Socket", "onNewSMS by socket")
+            Handler(Looper.getMainLooper()).post {
+                //val data = args[0] as JSONObject
+                try {
+
+                    settingsManager.updateSettings()
+                    if (settingsManager.isSendEnabled){
+                        Timer("SendSMS", false).schedule(SendTask(settingsManager, this), 0)
+                    }
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+        }
+    }
+
+    private fun disconnectSocket(){
+        socket?.emit("onLeaveSMSDevice", EasyDeviceModManager.getInstance().device);
+    }
+
+
+    fun doRestart() {
+        val mStartActivity = Intent(this, MainActivity::class.java)
+        val mPendingIntentId = 123456
+        val mPendingIntent = PendingIntent.getActivity(
+            this,
+            mPendingIntentId,
+            mStartActivity,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+        val mgr: AlarmManager =
+            this.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent)
+        System.exit(0)
+    }
+
+    private fun appInitialization() {
+        defaultUEH = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler(_unCaughtExceptionHandler)
+    }
+
+    //make crash report on ex.stackreport
+    private var defaultUEH: Thread.UncaughtExceptionHandler? = null
+
+    // handler listener
+    private val _unCaughtExceptionHandler =
+        Thread.UncaughtExceptionHandler { thread, ex ->
+            ex.printStackTrace()
+            doRestart()
+        }
+
 
 }

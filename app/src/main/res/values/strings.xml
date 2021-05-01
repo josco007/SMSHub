@@ -5,12 +5,13 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
-    <integer name="preference_default_interval">1</integer>
+    <integer name="preference_default_interval">0</integer>
     <bool name="preference_default_send_enabled">false</bool>
-    <string name="preference_default_send_url">http://localhost/send_api.php</string>
-    <string name="preference_default_receive_url">http://localhost/receive_api.php</string>
-    <string name="preference_default_status_url">http://localhost/status_api.php</string>
+    <string name="preference_default_send_url">http://192.168.18.4:3000/api/sms</string>
+    <string name="preference_default_receive_url">http://192.168.18.4:3000/api/receive_api.php</string>
+    <string name="preference_default_status_url">http://192.168.18.4:3000/api/sms/updateSMSStatus</string>
     <string name="preference_default_device_id">1</string>
+    <string name="preference_default_socket_uri">http://192.168.18.4:3000</string>
 
     <string name="preference_file_key">com.ar.smshub.prefs</string>
     <string name="preference_send_url">com.ar.smshub.prefs.send_url</string>
@@ -19,4 +20,5 @@
     <string name="preference_interval">com.ar.smshub.prefs.interval</string>
     <string name="preference_send_enabled">com.ar.smshub.prefs.send_enabled</string>
     <string name="preference_device_id">com.ar.smshub.prefs.device_id</string>
+    <string name="preference_socket_uri">com.ar.smshub.prefs.socket_uri</string>
 </resources>

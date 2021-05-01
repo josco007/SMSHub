@@ -136,6 +136,28 @@
                 />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.3"
+            android:textSize="15sp"
+            android:text="Socket URI"/>
+
+
+        <EditText
+            android:id="@+id/textSocketURI"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.75"
+            android:ems="10" android:inputType="text"
+            />
+    </LinearLayout>
+
 
 
 
