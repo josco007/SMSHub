@@ -313,6 +313,11 @@ class MainActivity : AppCompatActivity() {
     private fun initSocketListener(){
         socket?.on("onNewSMS") { args ->
             Log.i("Socket", "onNewSMS by socket")
+
+            this.runOnUiThread(Runnable {
+                logMain("onNewSMS by socket")
+            })
+
             Handler(Looper.getMainLooper()).post {
                 //val data = args[0] as JSONObject
                 try {

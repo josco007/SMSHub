@@ -29,6 +29,10 @@ class SendTask constructor(_settings: SettingsManager, _context: Context) : Time
             Log.d("-->", "Cannot connect to URL")
             return
         }
+
+        mainActivity.runOnUiThread(Runnable {
+            mainActivity.logMain("Sending messages")
+        })
         //var sms: SMS? = SMS("", "", "")
         var smsArray: List<SMS>? = emptyList()
         var canSend: Boolean = false

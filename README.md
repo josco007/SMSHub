@@ -38,7 +38,8 @@ you can customize the next settings directly in the application
 
 ### How sending SMSs works
 
-1- The application connects at regular intervals to a URL
+1- The application connects at regular intervals if interval (mins) is set up to something upper than 0 to a URL
+
 
 ```
 POST https://yourcustomurl.com/send_api
@@ -46,9 +47,19 @@ POST https://yourcustomurl.com/send_api
     action: SEND
 ```
 
-2- It should read a JSON containing *message*, *number* and *id*, or an empty response if there is nothing to send
+1.1- The application connects at socket event onNewSMS to a URL, you must specify the socket URI to make this work
+
 ```
-{ "message": "hola mundo!", "number": "3472664455", "messageId": "1" }
+POST https://yourcustomurl.com/send_api
+    deviceId: 1
+    action: SEND
+```
+
+
+
+2- It should read a JSON Array containing *message*, *number* and *id*, or an empty response if there is nothing to send
+```
+[ { "message":"Message 1", "number":"1234567890", "messageId":"1" }, { "message":"Message 2", "number":"1234567890", "messageId":"2" }, { "message":"Message 3", "number":"1234567890", "messageId":"3" } ]
 ```
 
 3- The app will send the SMS *message* to *number*
