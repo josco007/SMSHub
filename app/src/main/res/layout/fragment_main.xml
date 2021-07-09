@@ -16,5 +16,11 @@
     <Button
             android:text="Clear log"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:id="@+id/buttonClearLog"/>
+            android:layout_height="wrap_content"
+        android:id="@+id/buttonClearLog"/>
+    <Button
+        android:text="Send pending messages (force)"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/sendPendingMessagesBtn"/>
 </LinearLayout>

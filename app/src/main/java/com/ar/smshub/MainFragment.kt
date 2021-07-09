@@ -56,6 +56,10 @@ class MainFragment : Fragment() {
         buttonClearLog.setOnClickListener {
             this.textMainLog.setText("")
         }
+        var sendPendingMessagesBtn = view.findViewById(R.id.sendPendingMessagesBtn) as Button
+        sendPendingMessagesBtn.setOnClickListener {
+            mainActivity.sendMessages()
+        }
         viewCreated = true
         return view
     }

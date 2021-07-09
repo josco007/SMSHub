@@ -35,10 +35,12 @@ class MainActivity : AppCompatActivity() {
 
     protected lateinit var settingsManager: SettingsManager
     lateinit var timerSend: Timer
+    lateinit var timerCheckSocketConnection: Timer
     var sendIntent = SMSSendIntent()
     var deliverIntent = SMSSendIntent()
 
     private var socket: Socket? = null
+    private var socketConnectedPrinted = false;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         fragmentManager.executePendingTransactions()
         //initialize timer for the first time
         updateTimer()
+
         requestSMSSendPermission()
         requestSMSReadPermission()
 
@@ -119,22 +122,25 @@ class MainActivity : AppCompatActivity() {
         val mainFragment: MainFragment
         try {
             mainFragment = fragmentManager.findFragmentByTag("MAIN") as MainFragment
+            if (newline) {
+                mainFragment.textMainLog.setText(mainFragment.textMainLog.text.toString() + "\n" + message)
+            } else {
+                mainFragment.textMainLog.setText(mainFragment.textMainLog.text.toString() + message)
+            }
+            var scrollAmount =
+                mainFragment.textMainLog.layout.getLineTop(mainFragment.textMainLog.lineCount) - mainFragment.textMainLog.height
+            // if there is no need to scroll, scrollAmount will be <=0
+            if (scrollAmount > 0) {
+                mainFragment.textMainLog.scrollTo(0, scrollAmount)
+            } else {
+                mainFragment.textMainLog.scrollTo(0, 0)
+            }
         } catch (e: kotlin.TypeCastException) {
             return
+        } catch (ex: java.lang.Exception){
+            return
         }
-        if (newline) {
-            mainFragment.textMainLog.setText(mainFragment.textMainLog.text.toString() + "\n" + message)
-        } else {
-            mainFragment.textMainLog.setText(mainFragment.textMainLog.text.toString() + message)
-        }
-        var scrollAmount =
-            mainFragment.textMainLog.getLayout().getLineTop(mainFragment.textMainLog.getLineCount()) - mainFragment.textMainLog.getHeight()
-        // if there is no need to scroll, scrollAmount will be <=0
-        if (scrollAmount > 0) {
-            mainFragment.textMainLog.scrollTo(0, scrollAmount)
-        } else {
-            mainFragment.textMainLog.scrollTo(0, 0)
-        }
+
     }
 
     fun updateTimer() {
@@ -175,6 +181,52 @@ class MainActivity : AppCompatActivity() {
             Log.d("---->", "Timer started at " + interval.toString())
             timerSend.schedule(SendTask(settingsManager, this), interval, interval)
         }
+    }
+
+    fun cancelTimerCheckSocketConnection(){
+        Log.d("---->", "Cancel cancelTimerCheckSocketConnection")
+        if (::timerCheckSocketConnection.isInitialized) {
+            timerCheckSocketConnection.cancel()
+        }
+        timerCheckSocketConnection = Timer("CheckSocketConn", true)
+    }
+
+    fun startTimerCheckSocketConnection() {
+
+        class CheckSocketConnection constructor( _context: Context) : TimerTask() {
+            var mainActivity: MainActivity = _context as MainActivity
+            override fun run() {
+                if (settingsManager.socketURI.isEmpty()){
+                    return
+                }
+                settingsManager.updateSettings()
+                if (socket?.connected() == false ){
+                    socketConnectedPrinted = false
+                    mainActivity.runOnUiThread(Runnable {
+                        mainActivity.logMain("Socket disconnected, connecting")
+                    })
+                    socket?.connect()
+                }
+                else{
+                    if (!socketConnectedPrinted){
+                        mainActivity.runOnUiThread(Runnable {
+                            mainActivity.logMain("Socket connected :) !!!!")
+                        })
+                    }
+
+                    socketConnectedPrinted = true
+                }
+            }
+        }
+
+        if (::timerCheckSocketConnection.isInitialized) {
+            timerCheckSocketConnection.cancel()
+        }
+        timerCheckSocketConnection = Timer("CheckSocketConn", true)
+
+        timerCheckSocketConnection.schedule(CheckSocketConnection(this), 1000, 1000 * 10)
+
+
     }
 
     fun requestSMSSendPermission() {
@@ -303,7 +355,10 @@ class MainActivity : AppCompatActivity() {
             settingsManager.updateSettings()
 
             socket?.connect()
+
             socket?.emit("onSMSDeviceJoined", EasyDeviceModManager.getInstance().buildID)
+
+            startTimerCheckSocketConnection()
         }
         catch (e: Exception){
             e.printStackTrace()
@@ -311,27 +366,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initSocketListener(){
+
+
         socket?.on("onNewSMS") { args ->
             Log.i("Socket", "onNewSMS by socket")
 
             this.runOnUiThread(Runnable {
                 logMain("onNewSMS by socket")
             })
+            sendMessages()
+        }
+    }
 
-            Handler(Looper.getMainLooper()).post {
-                //val data = args[0] as JSONObject
-                try {
+    fun sendMessages(){
+        Handler(Looper.getMainLooper()).post {
+            //val data = args[0] as JSONObject
+            try {
 
-                    settingsManager.updateSettings()
-                    if (settingsManager.isSendEnabled){
-                        Timer("SendSMS", false).schedule(SendTask(settingsManager, this), 0)
-                    }
-
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                settingsManager.updateSettings()
+                if (settingsManager.isSendEnabled){
+                    Timer("SendSMS", false).schedule(SendTask(settingsManager, this), 0)
                 }
-            }
 
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
